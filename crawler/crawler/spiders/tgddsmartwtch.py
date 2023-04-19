@@ -1,7 +1,7 @@
 # from pymysql import NULL
 import scrapy
 import math
-from ..items import TgddPhoneItem
+from ..items import TgddWatchItem
 from scrapy_splash import SplashRequest
 
 
@@ -32,19 +32,19 @@ class PhoneSpider(scrapy.Spider):
 
     def start_requests(self):
         start_urls = [
-            "https://www.thegioididong.com/dong-ho-thong-minh#c=7077&o=17&pi="
+            "https://www.thegioididong.com/dong-ho-thong-minh#c=7077&o=17&pi=3"
         ]
         for url in start_urls:
-            yield scrapy.Request(url=url, callback=self.parse)
-            # yield SplashRequest(
-            #     url,
-            #     self.parse,
-            #     endpoint='render.html',
-            #     args={
-            #         'wait': 20,
-            #         'lua_source': self.render_script,
-            #     }
-            # )
+            # yield scrapy.Request(url=url, callback=self.parse)
+            yield SplashRequest(
+                url,
+                self.parse,
+                endpoint='render.html',
+                args={
+                    'wait': 20,
+                    'lua_source': self.render_script,
+                }
+            )
 
     # Do trang tgdđ nó load bằng javascript. Nên cần delay 1 chút
     # def start_requests(self):
@@ -86,14 +86,14 @@ class PhoneSpider(scrapy.Spider):
 
     # Bat dau boc tach du lieu nhoe!
     def parse_info_phone(self, response):
-        phone = TgddPhoneItem()
+        phone = TgddWatchItem()
         phone['category'] = response.css('body > section.detail > ul > li:nth-child(1) > a ::text').extract_first()
         phone['company'] = response.css('body > section.detail > ul > li:nth-child(2) > a ::text').extract_first()
         phone['company'] = phone['company'][19:len(phone['company'])]
         phone['color'] = response.css(
             'body > section.detail > div.box_main > div.box_right > div > div.color > a.box03__item ::text').extract()
         phone['name'] = response.css('body > section.detail > h1 ::text').extract_first()
-        phone['name'] = phone['name'][19:len(phone['name'])]
+        # phone['name'] = phone['name'][19:len(phone['name'])]
         phone['memory'] = response.css(
             'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(7) > div > span ::text').extract_first()
 
@@ -105,17 +105,6 @@ class PhoneSpider(scrapy.Spider):
         else:
             phone['discountPrice'] = response.css(".box-price-present::text").extract_first()
             phone['discountRate'] = response.css(".box-price-percent::text").extract_first()
-        # originPrice = response.css('body > section.detail > div.box_main > div.box_right > div.box04.box_normal > div.price-one > div > p.box-price-old').extract()
-        # if len(originPrice) > 0:
-        #     phone['originPrice'] = response.css('body > section.detail > div.box_main > div.box_right > div.box04.box_normal > div.price-one > div > p.box-price-old ::text').extract_first()
-        #     phone['discountRate'] = response.css('body > section.detail > div.box_main > div.box_right > div.box04.box_normal > div.price-one > div > p.box-price-percent ::text').extract_first()
-        #     phone['discountPrice'] = response.css('body > section.detail > div.box_main > div.box_right > div.box04.box_normal > div.price-one > div > p.box-price-present ::text').extract_first()
-        # else:
-        #     phone['originPrice'] = response.css('body > section.detail > div.box_main > div.box_right > div.box04.box_normal >div.price-one > div > p.box-price-present ::text').extract_first()
-        #     if phone['originPrice'] == None:
-        #         phone['originPrice'] = response.css('body > section.detail > div.box_main > div.box_right > div.box04.notselling > div.price-one > div > p ::text').extract_first()
-        #     phone['discountRate'] = None
-        #     phone['discountPrice'] = None
 
         screenInfo = ''
         for info in response.css(
@@ -124,30 +113,30 @@ class PhoneSpider(scrapy.Spider):
         screenInfo = screenInfo[0:len(screenInfo) - 2]
 
         phone['screen'] = screenInfo.replace('"', '')
-        phone['operatingSystem'] = response.css(
+        phone['pin'] = response.css(
             'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(2) > div > span ::text').extract_first()
-        phone['frontCamera'] = response.css(
+        phone['screenRaw'] = response.css(
             'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(4) > div > span ::text').extract_first()
-        phone['behindCamera'] = response.css(
+        phone['operatingSystem'] = response.css(
             'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(3) > div > span ::text').extract_first()
-        phone['chip'] = response.css(
+        phone['feature'] = response.css(
             'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(5) > div > span ::text').extract_first()
-        phone['ram'] = response.css(
-            'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(6) > div > span ::text').extract_first()
-
-        simInfo = ''
-        for info in response.css(
-                'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(8) > div > span ::text').extract():
-            simInfo = simInfo + info + ', '
-        simInfo = simInfo[0:len(simInfo) - 2]
-        phone['sim'] = simInfo
-
-        pinInfo = ''
-        for info in response.css(
-                'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(9) > div > span ::text').extract():
-            pinInfo = pinInfo + info + ', '
-        pinInfo = pinInfo[0:len(pinInfo) - 2]
-        phone['pin'] = pinInfo
+        # phone['ram'] = response.css(
+        #     'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(6) > div > span ::text').extract_first()
+        #
+        # simInfo = ''
+        # for info in response.css(
+        #         'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(8) > div > span ::text').extract():
+        #     simInfo = simInfo + info + ', '
+        # simInfo = simInfo[0:len(simInfo) - 2]
+        # phone['sim'] = simInfo
+        #
+        # # pinInfo = ''
+        # for info in response.css(
+        #         'body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(9) > div > span ::text').extract():
+        #     pinInfo = pinInfo + info + ', '
+        # pinInfo = pinInfo[0:len(pinInfo) - 2]
+        # phone['pin'] = pinInfo
         phone['rate'] = response.css(".point::text").extract_first()
         phone['point'] = response.css(".rating-total::text").extract_first()
         divImage = response.css(".item-border >img::attr(data-src)").extract_first()

@@ -11,7 +11,7 @@ from ..items import TgddPhoneItem
 # là không được request cùng 1 trang web
 
 class PhoneSpider(scrapy.Spider):
-    name = 'phone'
+    name = 'phone2'
     i = 1
     allowed_domains = ['www.thegioididong.com/dtdd']
     # start_urls = ['http://www.thegioididong.com/dtdd#c=42&o=9&pi=1/']
