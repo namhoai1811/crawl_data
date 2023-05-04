@@ -1,8 +1,7 @@
-# from pymysql import NULL
 import scrapy
-import math
 from ..items import TgddLaptopItem
 from scrapy_splash import SplashRequest
+
 
 
 # Spider này dùng để crawl những điện thoại
@@ -11,10 +10,8 @@ from scrapy_splash import SplashRequest
 # là không được request cùng 1 trang web
 
 class PhoneSpider(scrapy.Spider):
-    name = 'laptop'
+    name = 'dmx'
     i = 1
-    allowed_domains = ['https://www.thegioididong.com/laptop']
-    # start_urls = ['http://www.thegioididong.com/dtdd#c=42&o=9&pi=1/']
     base_url = "https://www.thegioididong.com/laptop#c=44&o=17&pi="
 
     render_script = """
@@ -32,7 +29,7 @@ class PhoneSpider(scrapy.Spider):
 
     def start_requests(self):
         start_urls = [
-            "https://www.thegioididong.com/laptop#c=44&o=17&pi=10"
+            "https://www.dienmayxanh.com/laptop?key=laptop&sc=new#c=44&o=17&pi=10"
         ]
         for url in start_urls:
             # yield scrapy.Request(url=url, callback=self.parse)
@@ -61,28 +58,14 @@ class PhoneSpider(scrapy.Spider):
 
     def parse(self, response):
         phoneItem = response.css('div.container-productbox > ul > li > a.main-contain ::attr(href)').extract()
+        print(phoneItem)
         for phone in phoneItem:
-            yield scrapy.Request(response.urljoin(phone), callback=self.parse_type_phone, dont_filter=True)
+            yield scrapy.Request(response.urljoin(phone), callback=self.parse_info_phone, dont_filter=True)
 
         # if self.i < 5:
         #     self.i += 1
         #     path_next = self.base_url +str(self.i)
         #     yield response.follow(path_next, callback=self.parse)
-
-    # Request tới từng option memory
-    def parse_type_phone(self, response):
-
-        url = response.request.url
-        opstion = response.css(
-            "body > section.detail > div.box_main > div.box_right > div.scrolling_inner > div >a::attr(href)").extract()
-        if len(opstion):
-            url = response.css(
-                'body > section.detail > div.box_main > div.box_right > div:nth-child(1) > div > a ::attr(href)').extract()
-            for i in range(len(url)):
-                # if i > 0:
-                yield scrapy.Request(response.urljoin(url[i]), callback=self.parse_info_phone, dont_filter=True)
-        else:
-            yield scrapy.Request(response.urljoin(url), callback=self.parse_info_phone, dont_filter=True)
 
     # Bat dau boc tach du lieu nhoe!
     def parse_info_phone(self, response):
@@ -90,9 +73,6 @@ class PhoneSpider(scrapy.Spider):
         phone['category'] = response.css('body > section.detail > ul > li:nth-child(1) > a ::text').extract_first()
         phone['company'] = response.css('body > section.detail > ul > li:nth-child(2) > a ::text').extract_first()
         phone['company'] = phone['company'][7:len(phone['company'])]
-
-        # phone['color'] = response.css(
-        #     'body > section.detail > div.box_main > div.box_right > div > div.color > a.box03__item ::text').extract()
         phone['name'] = response.css('body > section.detail > h1 ::text').extract_first()
         # phone['name'] = phone['name'][11:len(phone['name'])]
         phone['memory'] = response.css(
@@ -106,6 +86,7 @@ class PhoneSpider(scrapy.Spider):
         else:
             phone['discountPrice'] = response.css(".box-price-present::text").extract_first()
             phone['discountRate'] = response.css(".box-price-percent::text").extract_first()
+
 
         phone['ram'] = response.css('body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(2) > div > span ::text').extract_first()
         phone['cpu'] = response.css('body > section.detail > div.box_main > div.box_right > div.parameter > ul > li:nth-child(1) > div > span::text').extract_first()

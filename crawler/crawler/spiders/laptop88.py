@@ -63,7 +63,7 @@ class PhoneSpider(scrapy.Spider):
             laptop['url'] = 'https://laptop88.vn' +str(item.css('div.product-img > a::attr(href)').extract_first())
             if((laptop['discountPrice']==None) & (laptop['discountPrice'] == None)):
                 laptop['originPrice'] = item.css(
-                    'div.product-info > div.product-price > div > del.jjgjhold-price::text').extract_first()
+                    'div.product-info > div.product-price > div > del.jjgjhhkold-price::text').extract_first()
             else: yield laptop
 
 
